@@ -1,50 +1,36 @@
-using System.Collections;
 using UnityEngine;
 
 public class FishSpawner : MonoBehaviour
 {
-    public GameObject[] fishPrefabs;
+    public GameObject[] fishPrefabs; 
+    public bool spawnFromRight; 
+    public Vector2 spawnAreaMin; 
+    public Vector2 spawnAreaMax; 
     public float spawnInterval = 2f;
-    public Vector2 spawnYRange = new Vector2(-3f, -1f); // Altura no oceano para o spawn
-    public bool spawnFromRight;
 
     private void Start()
     {
-        StartCoroutine(SpawnFish());
+        InvokeRepeating(nameof(SpawnFish), 0f, spawnInterval);
     }
 
-    private IEnumerator SpawnFish()
+    private void SpawnFish()
     {
-        while (true)
-        {
-            yield return new WaitForSeconds(spawnInterval);
-            
-            // Escolhe um peixe aleatoriamente
-            GameObject fishPrefab = fishPrefabs[Random.Range(0, fishPrefabs.Length)];
+        
+        float spawnX = spawnFromRight ? spawnAreaMax.x : spawnAreaMin.x;
+        float spawnY = Random.Range(spawnAreaMin.y, spawnAreaMax.y);
+        Vector2 spawnPosition = new Vector2(spawnX, spawnY);
 
-            // Define a posição de spawn
-            float spawnY = Random.Range(spawnYRange.x, spawnYRange.y);
-            Vector3 spawnPosition = new Vector3(
-                spawnFromRight ? 10f : -10f, // Ajuste a posição X conforme necessário
-                spawnY,
-                0f
-            );
+        
+        GameObject selectedFishPrefab = fishPrefabs[Random.Range(0, fishPrefabs.Length)];
 
-            // Instancia o peixe na posição de spawn
-            GameObject fish = Instantiate(fishPrefab, spawnPosition, Quaternion.identity);
+       
+        GameObject newFish = Instantiate(selectedFishPrefab, spawnPosition, Quaternion.identity);
 
-            // Define a direção do peixe
-            if (spawnFromRight)
-            {
-                fish.transform.localScale = new Vector3(-1, 1, 1); // Espelha o peixe se vier da direita
-            }
+       
+        Vector3 scale = newFish.transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * (spawnFromRight ? -1 : 1); 
+        newFish.transform.localScale = scale;
 
-            // Adiciona movimento ao peixe
-            Rigidbody2D rb = fish.GetComponent<Rigidbody2D>();
-            if (rb != null)
-            {
-                rb.velocity = new Vector2(spawnFromRight ? -2f : 2f, 0f);
-            }
-        }
+    
     }
 }
